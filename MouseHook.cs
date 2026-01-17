@@ -58,9 +58,9 @@ namespace MouseClickVoice
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0)
+            if (nCode >= 0 && lParam != IntPtr.Zero)
             {
-                MSLLHOOKSTRUCT hookStruct = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT)!);
+                var hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
                 var mouseArgs = new MouseEventArgs(hookStruct.pt.x, hookStruct.pt.y);
 
                 if (wParam == WM_LBUTTONDOWN)

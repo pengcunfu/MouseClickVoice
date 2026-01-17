@@ -109,9 +109,9 @@ namespace MouseClickVoice
             }
         }
 
-        private void StartButton_Click(object sender, RoutedEventArgs e)
+        private async void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            StartService();
+            await StartService();
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)

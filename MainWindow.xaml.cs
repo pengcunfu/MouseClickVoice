@@ -123,6 +123,18 @@ namespace MouseClickVoice
         {
             try
             {
+                // 首先初始化 Whisper
+                RecognitionStatusText.Text = "正在初始化 Whisper...";
+                if (_speechRecognizer != null && !_speechRecognizer.IsInitialized)
+                {
+                    var initSuccess = await _speechRecognizer.InitializeAsync();
+                    if (!initSuccess)
+                    {
+                        MessageBox.Show("Whisper 初始化失败，请检查网络连接和模型下载", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
                 _mouseHook?.Start();
                 await Task.Delay(100);
 
@@ -130,6 +142,7 @@ namespace MouseClickVoice
                 StopButton.IsEnabled = true;
 
                 ShowNotification("服务已启动", "按住鼠标左键1.5秒开始语音输入");
+                RecognitionStatusText.Text = "Whisper 就绪";
             }
             catch (Exception ex)
             {
@@ -143,7 +156,6 @@ namespace MouseClickVoice
             {
                 _mouseHook?.Stop();
                 _audioCapture?.StopRecording();
-                _speechRecognizer?.StopListening();
 
                 _isRecording = false;
                 _isMouseDown = false;
@@ -176,21 +188,20 @@ namespace MouseClickVoice
             }
         }
 
-        private async void OnLongPressDetected(object? sender, MouseEventArgs e)
+        private void OnLongPressDetected(object? sender, MouseEventArgs e)
         {
             if (_isMouseDown && !_isRecording)
             {
-                await StartRecording();
+                StartRecording();
             }
         }
 
-        private async Task StartRecording()
+        private void StartRecording()
         {
             try
             {
                 _isRecording = true;
                 _audioCapture?.StartRecording(_config.SampleRate, _config.Channels, _config.BitDepth);
-                _speechRecognizer?.StartListening();
             }
             catch (Exception ex)
             {
@@ -199,13 +210,24 @@ namespace MouseClickVoice
             }
         }
 
-        private void StopRecording()
+        private async void StopRecording()
         {
             try
             {
                 _isRecording = false;
                 _audioCapture?.StopRecording();
-                _speechRecognizer?.StopListening();
+
+                // 获取完整的音频数据并进行识别
+                var audioData = _audioCapture?.GetCompleteAudio();
+                if (audioData != null && _speechRecognizer != null)
+                {
+                    RecognitionStatusText.Text = "正在识别...";
+                    var result = await _speechRecognizer.RecognizeFromBufferAsync(audioData, _config.SampleRate);
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        OnTextRecognized(this, result);
+                    }
+                }
             }
             catch (Exception ex)
             {

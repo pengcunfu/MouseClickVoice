@@ -1,90 +1,164 @@
 # 鼠标左键长按语音输入程序
 
-一个支持鼠标左键长按激活语音输入的Python程序，可以将语音转换为文字并自动输入。
+一个支持鼠标左键长按激活语音输入的 C# WPF 桌面应用程序，使用 Whisper AI 模型进行中文语音识别。
 
 ## 功能特点
 
-- 🖱️ **鼠标左键长按检测**：按住鼠标左键1.5秒激活语音输入
-- 🎤 **语音录制**：使用系统麦克风进行实时语音录制
-- 🗣️ **语音转文字**：使用Google语音识别服务将语音转换为文字
-- ⌨️ **自动输入**：将识别的文字自动输入到当前焦点位置
-- 🎛️ **可配置**：支持自定义长按时间、采样率等参数
-- 🚪 **简单退出**：按ESC键安全退出程序
+- **鼠标左键长按检测**：按住鼠标左键1.5秒激活语音输入
+- **实时语音录制**：使用系统麦克风进行实时语音录制
+- **AI 语音识别**：使用 OpenAI Whisper 模型进行本地语音识别
+- **自动输入**：将识别的文字自动输入到当前焦点位置
+- **可配置**：支持自定义长按时间、采样率等参数
+- **离线运行**：模型下载后可离线使用
 
-## 安装依赖
+## 系统要求
+
+- Windows 10/11
+- .NET 8.0 Runtime（或 .NET SDK 用于开发）
+- 麦克风设备
+- 首次运行需要网络连接（下载模型）
+
+## 快速开始
+
+### 方法1: 直接运行（推荐）
 
 ```bash
-pip install -r requirements.txt
+# 构建项目
+dotnet build -c Release
+
+# 运行程序
+bin\Release\net8.0-windows\win-x64\MouseClickVoice.exe
 ```
 
-### 依赖说明
+### 方法2: 使用 Visual Studio
 
-- `pyautogui` - 用于模拟键盘输入
-- `pyaudio` - 音频录制
-- `SpeechRecognition` - 语音识别
-- `keyboard` - 键盘事件监听
-- `pynput` - 鼠标事件监听
+1. 打开 `MouseClickVoice.sln`
+2. 按 F5 或点击"启动"按钮运行
+
+### 方法3: 使用命令行
+
+```bash
+dotnet run
+```
 
 ## 使用方法
 
-1. **安装依赖**
-   ```bash
-   pip install -r requirements.txt
-   ```
+1. **启动程序**
+   - 运行 MouseClickVoice.exe
 
-2. **运行程序**
-   ```bash
-   python mouse_voice_input.py
-   ```
+2. **首次使用**
+   - 点击"开始服务"按钮
+   - 等待 Whisper 模型自动下载（约 40MB，仅首次）
+   - 模型下载完成后显示"Whisper 就绪"
 
-3. **使用说明**
-   - 按住鼠标左键1.5秒开始语音录制
-   - 说话进行语音输入
-   - 释放鼠标左键停止录音
-   - 识别的文字会自动输入到当前焦点位置
-   - 按ESC键退出程序
+3. **开始语音输入**
+   - 在任意可输入文本的地方，按住鼠标左键1.5秒
+   - 听到录音状态提示后开始说话
+   - 松开鼠标左键停止录音
+   - 程序自动识别并输入文字到当前位置
+
+4. **调整设置**
+   - 长按时间：滑动条调整（0.5-3.0秒）
+   - 输入方式：键盘模拟 / 剪贴板粘贴
+   - 通知：开启/关闭状态通知
 
 ## 配置选项
 
-你可以在创建程序实例时自定义参数：
+程序支持在主窗口界面中配置以下参数：
 
-```python
-# 自定义长按时间为2秒
-app = MouseVoiceInput(long_press_duration=2.0)
+- **长按时间**：0.5-3.0秒可调（默认1.5秒）
+- **识别语言**：中文
+- **输入方式**：键盘模拟 / 剪贴板粘贴
+- **通知设置**：开启/关闭状态通知
+- **音频参数**：采样率、声道数、位深度
 
-# 自定义采样率
-app = MouseVoiceInput(sample_rate=44100)
+配置会自动保存到 `config.json` 文件中。
+
+## 技术架构
+
+### 核心模块
+
+- **MouseHook**：Windows 钩子技术检测鼠标事件
+- **AudioCapture**：NAudio 库实现音频捕获
+- **SpeechRecognition**：Whisper.net 实现语音识别
+- **TextSimulator**：Win32 API 模拟键盘输入
+- **Config**：JSON 配置文件管理
+
+### 技术栈
+
+- **框架**：.NET 8.0 + WPF
+- **音频**：NAudio 2.2.1
+- **语音识别**：Whisper.net 1.5.0（Whisper Tiny 模型）
+- **架构**：x64
+
+## 项目文件结构
+
+```
+MouseClickVoice/
+├── AudioCapture.cs          # 音频捕获模块
+├── Config.cs               # 配置管理
+├── MainWindow.xaml         # 主窗口界面
+├── MainWindow.xaml.cs      # 主窗口逻辑
+├── MouseHook.cs            # 鼠标事件检测
+├── SpeechRecognition.cs    # 语音识别模块
+├── TextSimulator.cs        # 文本输入模拟
+├── App.xaml                # 应用程序定义
+├── AssemblyInfo.cs         # 程序集信息
+├── MouseClickVoice.csproj  # 项目文件
+└── MouseClickVoice.sln     # 解决方案文件
 ```
 
 ## 注意事项
 
-1. **网络连接**：语音识别需要网络连接（使用Google语音识别服务）
-2. **麦克风权限**：确保程序有访问麦克风的权限
-3. **语音识别语言**：默认使用中文识别（zh-CN）
-4. **安全性**：pyautogui的安全模式已禁用，请谨慎使用
+1. **系统要求**：Windows 10/11 系统
+2. **麦克风权限**：确保程序有麦克风访问权限
+3. **管理员权限**：建议以管理员身份运行以获得全局鼠标钩子权限
+4. **模型下载**：首次运行需要网络连接下载 Whisper 模型（约 40MB）
+5. **隐私保护**：语音识别使用本地 Whisper 模型，数据不会上传到外部服务器
 
 ## 故障排除
 
-### 麦克风相关问题
-- 检查系统麦克风权限
-- 确保麦克风设备工作正常
-- 调整音频采样率
+### 构建问题
 
-### 语音识别问题
-- 检查网络连接
-- 尝试调整语音识别语言
-- 确保发音清晰
+```bash
+# 清理并重新构建
+dotnet clean
+dotnet build -c Release
+
+# 还原依赖
+dotnet restore
+```
+
+### 音频设备问题
+
+- 打开 Windows 设置 → 系统 → 声音
+- 检查麦克风是否为默认设备
+- 测试麦克风是否正常工作
 
 ### 权限问题
-- 在Windows上可能需要以管理员身份运行
-- 确保没有其他程序占用麦克风
 
-## 系统要求
+- Windows: 右键程序选择"以管理员身份运行"
+- 在 Windows 设置中授予麦克风访问权限
 
-- Python 3.7+
-- Windows/macOS/Linux
-- 麦克风设备
-- 网络连接
+### 模型下载问题
+
+- 确保网络连接正常
+- 模型会保存在程序目录的 `models` 文件夹中
+- 如下载失败，可手动下载 ggml-tiny.bin 模型文件
+
+## 构建单文件发布版本
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+```
+
+输出文件位于：`bin\Release\net8.0-windows\win-x64\publish\MouseVoiceInput.exe`
+
+## 开发环境
+
+- Visual Studio 2022 或 Visual Studio Code
+- .NET 8.0 SDK
+- Windows SDK
 
 ## 许可证
 
